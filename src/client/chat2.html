@@ -1,0 +1,101 @@
+<script src="http://localhost:5001/socketio"></script>
+<script src="http://localhost:5001/jquery"></script>
+<h1>Message</h1>
+
+<!-- chat contents will be written down below. -->
+<div id="chatContent">
+  
+</div>
+<input id="myChat" type="text">
+<input type="submit" id="send" value="Send">
+
+<script>
+	// 판매자 로그인토큰 + 유저별 거래신청이력
+	let token = "ddd2fb3d-db34-4c58-8682-5466fc37dc25";
+	let trl_seq = 1;
+
+	let socket = io.connect(`http://localhost:5001`, {
+		path: '/chatting'
+	});
+
+	// 채팅방 접속
+	socket.emit("roomJoin", {token: token, trl_seq: trl_seq});
+
+	// receiving a message
+	socket.on('msg', function (data) {
+		let msgLine = $('<div class="msgLine">');
+		let msgBox = $('<div class="msgBox">');
+		msgBox.append(data);
+        msgBox.css('display', 'inline-block');
+        msgLine.append(msgBox);
+        $('#chatContent').append(msgLine);
+		chatContent.scrollTop = chatContent.scrollHeight;
+	});
+
+	// sending a message
+	$("#myChat").on("keyup", function () {
+		if (window.event.keyCode==13 && $(this).val()!="") {
+			let msgLine = $('<div class="msgLine">');
+            let msgBox = $('<div class="msgBox">');
+            msgBox.append($(this).val());
+            msgBox.css('display', 'inline-block');
+            msgLine.css('text-align', 'right');
+            msgLine.append(msgBox);
+            $('#chatContent').append(msgLine);
+            socket.emit('msg', {
+				token: token,
+				trl_seq: trl_seq,
+				message: $("#myChat").val()
+			});
+            $(this).val("");
+            chatContent.scrollTop = chatContent.scrollHeight;
+        }
+	});
+
+	// 채팅보내기
+	$("#send").on("click", () => {
+		socket.emit('msg', {
+			token: token,
+			trl_seq: trl_seq,
+			message: $("#myChat").val()
+		});
+		$("#myChat").val("");
+	});
+</script>
+  
+<style>
+	* {
+		box-sizing: border-box;
+	}
+	.msgLine {
+		margin: 15px;
+	}
+	.msgBox {
+		border: 1px solid black;
+		background: white;
+		padding: 2px 5px;
+		border-radius: 10px;
+	}
+	#chatContent {
+		border: 1px solid #000;
+		width: 100%;
+		height: 200px;
+		margin-bottom: 10px;
+		overflow-y: auto;
+	}
+	#myChat {
+		width: 100%;
+	}
+	#msg, #myChat {
+		width: 80%;
+		height: 32px;
+		border-radius: 8px;
+	}
+	#send {
+		width: 16%;
+		height: 34px;
+		border-radius: 50px;
+		background: black;
+		color: white;
+	}
+</style>
