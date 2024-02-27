@@ -16,7 +16,7 @@
   "license": "ISC",
   "dependencies": {
     "@types/node": "^18.11.10",
-    "aws-sdk": "^2.1558.0",
+    "aws-sdk": "^2.1565.0",
     "axios": "^1.3.4",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.19.0",

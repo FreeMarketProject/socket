@@ -1,7 +1,6 @@
 const moment = require('moment');
 const bcrypt = require("bcryptjs");
 const PageClass = require('./class/PageClass');
-const sms = require('./sms');
 
 /**
  * Null, Undefined 체크
@@ -182,16 +181,4 @@ module.exports.createRandomNumbers = (length) => {
     }
     
     return numbers;
-}
-
-/**
- * 모바일 인증번호 보내기
- * 
- * @param {*} mobile 
- * @param {*} number 
- */
-module.exports.sendSMS = (mobile, number) => {
-    sms.sendSMS(`+82${mobile}`, `[FreeMerket] 인증번호 ${number}`, (err, result)=>{
-        console.log("RESULTS: ",err,result)
-    });
 }

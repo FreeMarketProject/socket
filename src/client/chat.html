@@ -21,34 +21,79 @@
 	// 채팅방 접속
 	socket.emit("roomJoin", {token: token, trl_seq: trl_seq});
 
-	// receiving a message
-	socket.on('msg', function (data) {
-		let msgLine = $('<div class="msgLine">');
-		let msgBox = $('<div class="msgBox">');
-		msgBox.append(data);
-        msgBox.css('display', 'inline-block');
-        msgLine.append(msgBox);
-        $('#chatContent').append(msgLine);
-		chatContent.scrollTop = chatContent.scrollHeight;
+	// 이전 채팅내역 가져오기
+	let history_limit_point = 99999999999999999;
+	socket.emit("history", {token: token, trl_seq: trl_seq, page: 1, limit: 20, history_limit_point: history_limit_point});
+	socket.on("history", (items) => {
+		for (let i=0; i<items.length; i++) {
+			if (items[i].my) {
+				let msgLine = $('<div class="msgLine">');
+				let msgBox = $('<div class="msgBox">');
+				msgBox.append(items[i].message);
+				msgBox.css('display', 'inline-block');
+				msgLine.css('text-align', 'right');
+				msgLine.append(msgBox);
+				$('#chatContent').append(msgLine);
+				chatContent.scrollTop = chatContent.scrollHeight;
+			} else {
+				let msgLine = $('<div class="msgLine">');
+				let msgBox = $('<div class="msgBox">');
+				msgBox.append(`${items[i].user_nick}: ${items[i].message} (${items[i].reg_dt})`);
+				msgBox.css('display', 'inline-block');
+				msgLine.append(msgBox);
+				$('#chatContent').append(msgLine);
+				chatContent.scrollTop = chatContent.scrollHeight;
+			}
+		}
 	});
 
-	// sending a message
-	$("#myChat").on("keyup", function () {
-		if (window.event.keyCode==13 && $(this).val()!="") {
+	// 메세지받기
+	socket.on('msg', (data) => {
+		console.log(data)
+		console.log(data.token)
+		console.log(token)
+
+		if (data.type === "alarm") {
+			// 알림
+			let msgLine = $('<div class="msgLine">');
+			let msgBox = $('<div class="msgBox">');
+			msgBox.append(data.message);
+			msgBox.css('display', 'inline-block');
+			msgLine.append(msgBox);
+			$('#chatContent').append(msgLine);
+			chatContent.scrollTop = chatContent.scrollHeight;
+		} else if (data.token === token) {
+			// 자신이 쓴 글
 			let msgLine = $('<div class="msgLine">');
             let msgBox = $('<div class="msgBox">');
-            msgBox.append($(this).val());
+            msgBox.append(data.message);
             msgBox.css('display', 'inline-block');
             msgLine.css('text-align', 'right');
             msgLine.append(msgBox);
             $('#chatContent').append(msgLine);
+			chatContent.scrollTop = chatContent.scrollHeight;
+		} else {
+			// 자신이 쓰지 않은 글
+			let msgLine = $('<div class="msgLine">');
+			let msgBox = $('<div class="msgBox">');
+			msgBox.append(`${data.user_nick}: ${data.message} (${data.reg_dt})`);
+			msgBox.css('display', 'inline-block');
+			msgLine.append(msgBox);
+			$('#chatContent').append(msgLine);
+			chatContent.scrollTop = chatContent.scrollHeight;
+		}
+	});
+
+	// 채팅보내기(엔터)
+	$("#myChat").on("keyup", function () {
+		if (window.event.keyCode==13 && $(this).val()!="") {
 			socket.emit('msg', {
 				token: token,
 				trl_seq: trl_seq,
 				message: $("#myChat").val()
 			});
+
             $(this).val("");
-            chatContent.scrollTop = chatContent.scrollHeight;
         }
 	});
 
